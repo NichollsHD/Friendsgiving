@@ -267,25 +267,39 @@
     }
     return "";
   }
+  // Finds a Sign-Up column by what its header contains, so renamed headers
+  // ("Your Name") still work; falls back to the column's position (A, B, C…).
+  function col(row, test, pos) {
+    var keys = Object.keys(row);
+    for (var i = 0; i < keys.length; i++) if (test(keys[i].toLowerCase())) return row[keys[i]];
+    return keys[pos] != null ? row[keys[pos]] : "";
+  }
+  function isOtherDish(d) { return /^other\b/i.test(d); }
+  function servesFromPortion(p) { var m = /serves\s*(\d+)/i.exec(p || ""); return m ? parseInt(m[1], 10) : 0; }
 
   /* ---- Turning rows into the numbers on the page ---- */
   function model(signups, menu) {
+    var seen = {};
     var entries = signups.map(function (r) {
-      var dish = pick(r, ["dish"]); // "Dish type" is matched separately below
-      var type = pick(r, ["dish type"]);
-      // "dish" also matches "dish type"; read the exact Dish column when present
-      if ("Dish" in r) dish = r["Dish"];
-      var other = pick(r, ["if other"]);
-      return {
-        name: pick(r, ["name"]),
-        course: type,
-        dish: dish === "Other" && other ? other : dish,
-        isOther: dish === "Other",
-        portion: pick(r, ["portion"]).replace(/\s*\(.*\)$/, ""),
-        allergy: pick(r, ["allerg"]),
-        status: pick(r, ["status"]),
-        serves: parseInt(pick(r, ["serves"]), 10) || 0
+      var dish = col(r, function (k) { return k.indexOf("dish") >= 0 && k.indexOf("type") < 0; }, 2);
+      var other = col(r, function (k) { return k.indexOf("other") >= 0; }, 3);
+      var portionRaw = col(r, function (k) { return k.indexOf("portion") >= 0; }, 4);
+      var e = {
+        name: col(r, function (k) { return k.indexOf("name") >= 0 || k.indexOf("who") >= 0; }, 0),
+        course: col(r, function (k) { return k.indexOf("type") >= 0 || k.indexOf("course") >= 0; }, 1),
+        dish: isOtherDish(dish) ? other : dish,
+        isOther: isOtherDish(dish),
+        portion: portionRaw.replace(/\s*\(.*\)$/, ""),
+        allergy: col(r, function (k) { return k.indexOf("allerg") >= 0 || k.indexOf("dietary") >= 0; }, 5),
+        status: col(r, function (k) { return k.indexOf("status") >= 0; }, 6),
+        serves: parseInt(col(r, function (k) { return k.indexOf("serves") >= 0; }, 7), 10) || servesFromPortion(portionRaw)
       };
+      // If a row's Status formula is missing, judge the row the same way the sheet would.
+      if (!e.status && e.name && e.course && e.dish && e.portion) {
+        e.status = !e.isOther && seen[e.dish.toLowerCase()] ? "Taken, pick another" : "Claimed";
+      }
+      if (/^claimed$/i.test(e.status) && !e.isOther && e.dish) seen[e.dish.toLowerCase()] = 1;
+      return e;
     }).filter(function (e) { return e.name || e.dish; });
 
     var claimed = entries.filter(function (e) { return /^claimed$/i.test(e.status); });
@@ -300,7 +314,7 @@
     COURSES.forEach(function (c) { available[c.key] = []; });
     menu.forEach(function (m) {
       var course = pick(m, ["course"]), dish = pick(m, ["dish"]);
-      if (available[course] && dish && dish !== "Other" && !taken[dish.toLowerCase()]) available[course].push(dish);
+      if (available[course] && dish && !isOtherDish(dish) && !taken[dish.toLowerCase()]) available[course].push(dish);
     });
 
     var byCourse = {};
