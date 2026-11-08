@@ -62,7 +62,7 @@
   }
   .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
   header.hero {
-    padding: 40px 0 28px;
+    padding: 20px 0 28px;
     background:
       radial-gradient(1200px 300px at 10% -40%, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent),
       radial-gradient(900px 260px at 100% -30%, color-mix(in srgb, var(--accent) 18%, transparent), transparent);
@@ -120,10 +120,11 @@
 
   footer { border-top: 1px solid var(--border); padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
   footer .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .brand { display: inline-flex; align-items: center; gap: 14px; color: var(--text); font-family: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif; font-weight: 800; font-size: 26px; line-height: 1.1; text-decoration: none; }
-  .brand svg { width: 56px; height: 56px; flex: none; }
-  .brand .t { font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; display: block; margin-bottom: 2px; }
-  @media (max-width: 480px) { .brand { font-size: 22px; } .brand svg { width: 48px; height: 48px; } }
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+  .brand { display: inline-flex; align-items: center; gap: 12px; flex: none; color: var(--text); font-family: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif; font-weight: 800; font-size: 22px; line-height: 1.1; padding: 8px 16px 8px 8px; border: 1px solid var(--border); border-radius: 16px; background: color-mix(in srgb, var(--surface) 80%, transparent); box-shadow: var(--shadow); }
+  .brand svg { width: 48px; height: 48px; flex: none; }
+  .brand .t { font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; display: block; margin-bottom: 2px; }
+  @media (max-width: 480px) { .brand { font-size: 17px; gap: 9px; padding: 6px 12px 6px 6px; border-radius: 12px; } .brand svg { width: 38px; height: 38px; } .brand .t { font-size: 10px; } .eyebrow { font-size: 12px; } }
   button.ghost { background: none; border: 1px solid var(--border); color: var(--text); border-radius: 99px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
   button.ghost:hover { background: var(--surface-2); }
 
@@ -141,7 +142,16 @@
 <body>
 <header class="hero">
   <div class="wrap">
-    <div class="eyebrow" id="eyebrow">Friendsgiving</div>
+    <div class="topbar">
+      <div class="eyebrow" id="eyebrow">Friendsgiving</div>
+      <div class="brand" aria-label="Powered by Nicholls Tech">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="1" y="1" width="30" height="30" rx="8" fill="var(--text)"/>
+        <path d="M9 23V9l7 9V9M19 9h6M22 9v14" stroke="var(--bg)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span><span class="t">Powered by</span>Nicholls Tech</span>
+    </div>
+    </div>
     <h1>Who's bringing what <span class="leaf">🍂</span></h1>
     <p class="sub">A live look at the dish sign-up sheet. Sign up in the sheet; this page catches up on its own.</p>
     <div class="live"><span class="dot" id="dot"></span><span id="liveText">Loading the sheet…</span></div>
@@ -181,14 +191,7 @@
 </main>
 
 <footer>
-  <div class="wrap row">
-    <a class="brand" href="#" aria-label="Powered by Nicholls Tech" onclick="return false">
-      <svg viewBox="0 0 32 32" aria-hidden="true">
-        <rect x="1" y="1" width="30" height="30" rx="8" fill="var(--text)"/>
-        <path d="M9 23V9l7 9V9M19 9h6M22 9v14" stroke="var(--bg)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span><span class="t">Powered by</span>Nicholls Tech</span>
-    </a>
+  <div class="wrap row" style="justify-content:flex-end">
     <div class="row" style="gap:8px">
       <span id="updated"></span>
       <button class="ghost" id="refresh" type="button">Refresh</button>
