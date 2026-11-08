@@ -77,7 +77,7 @@
   @keyframes pulse { 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
   @media (prefers-reduced-motion: reduce) { .dot { animation: none; } .bar > span { transition: none !important; } }
 
-  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin: 8px 0 28px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin: 8px 0 28px; }
   .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: var(--shadow); }
   .tile .k { font-size: 13px; color: var(--muted); }
   .tile .v { font-family: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif; font-size: 34px; font-weight: 700; line-height: 1.1; margin-top: 4px; font-variant-numeric: tabular-nums; }
@@ -129,7 +129,7 @@
   button.ghost:hover { background: var(--surface-2); }
 
   @media (max-width: 820px) {
-    .tiles { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .tiles { gap: 8px; } .tile { padding: 12px; }
     .courses, .grid2 { grid-template-columns: 1fr; }
   }
   @media (max-width: 480px) {
@@ -164,7 +164,6 @@
   <div class="tiles" aria-live="polite">
     <div class="tile"><div class="k">People signed up</div><div class="v" id="tPeople">–</div><div class="n">with a dish claimed</div></div>
     <div class="tile"><div class="k">Dishes claimed</div><div class="v" id="tDishes">–</div><div class="n" id="tDishesN">&nbsp;</div></div>
-    <div class="tile"><div class="k">Food for at least</div><div class="v" id="tServes">–</div><div class="n">people, by portion size</div></div>
     <div class="tile"><div class="k" id="tFourthK">Still open</div><div class="v" id="tFourth">–</div><div class="n" id="tFourthN">dishes on the menu</div></div>
   </div>
 
@@ -343,7 +342,6 @@
     $("tPeople").textContent = m.headcount;
     $("tDishes").textContent = m.claimed.length;
     $("tDishesN").textContent = m.pending.length ? m.pending.length + " more being filled in" : "across all courses";
-    $("tServes").textContent = m.serves;
 
     var emptyCourses = COURSES.filter(function (c) { return !m.byCourse[c.key].list.length; });
     if (emptyCourses.length && m.claimed.length) {
@@ -363,12 +361,6 @@
       var card = el("div", { "class": "course", style: "--c:" + c.color });
       var h = el("h3", null, c.label); h.appendChild(el("small", null, d.list.length + (d.list.length === 1 ? " dish" : " dishes")));
       card.appendChild(h);
-      var pct = m.headcount ? Math.min(100, Math.round(d.serves / m.headcount * 100)) : (d.list.length ? 100 : 0);
-      var bar = el("div", { "class": "bar", role: "img", "aria-label": c.label + " covers " + pct + "% of guests" });
-      var fill = el("span"); fill.style.width = pct + "%"; bar.appendChild(fill); card.appendChild(bar);
-      if (m.headcount && d.list.length) card.appendChild(el("div", { "class": "cover" },
-        d.serves >= m.headcount ? "Enough for everyone signed up (" + d.serves + "+ servings)"
-                                : "Covers " + d.serves + " of " + m.headcount + " people signed up"));
       if (d.list.length) {
         var ul = el("ul", { "class": "chips" });
         d.list.forEach(function (e) { ul.appendChild(el("li", null, e.dish)); });
