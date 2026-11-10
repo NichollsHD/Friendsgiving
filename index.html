@@ -17,7 +17,6 @@
   window.FG_CONFIG = {
     sheetId: "1Fh8XPaM2qE0_bgBP9R-ELlqpN1rgM8L-rFcQeibljSE",
     signupTab: "Sign-Up",   // header row is row 4
-    menuTab: "Menu",
     eventDate: "",          // optional, e.g. "2026-11-21T17:00" for a countdown
     refreshSeconds: 60,
     showAllergyNames: false // false = list dietary needs without who has them
@@ -80,7 +79,7 @@
   @keyframes pulse { 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
   @media (prefers-reduced-motion: reduce) { .dot { animation: none; } .bar > span { transition: none !important; } }
 
-  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin: 8px 0 28px; }
+  .tiles { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; margin: 8px 0 28px; }
   .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: var(--shadow); }
   .tile .k { font-size: 13px; color: var(--muted); }
   .tile .v { font-family: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif; font-size: 34px; font-weight: 700; line-height: 1.1; margin-top: 4px; font-variant-numeric: tabular-nums; }
@@ -110,13 +109,6 @@
   tr:last-child td { border-bottom: 0; }
   .tag { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 99px; color: #fff; background: var(--c); }
   .pending { color: var(--warn); font-size: 13px; }
-
-  details.avail { border-top: 1px solid var(--border); }
-  details.avail summary { cursor: pointer; padding: 12px 16px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; }
-  details.avail summary::-webkit-details-marker { display: none; }
-  details.avail summary::after { content: "+"; color: var(--muted); }
-  details.avail[open] summary::after { content: "–"; }
-  details.avail .chips { padding: 0 16px 16px; }
 
   .notice { background: color-mix(in srgb, var(--warn) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--border)); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; font-size: 14px; display: none; }
   .notice.show { display: block; }
@@ -167,7 +159,6 @@
   <div class="tiles" aria-live="polite">
     <div class="tile"><div class="k">People signed up</div><div class="v" id="tPeople">–</div><div class="n">with a dish claimed</div></div>
     <div class="tile"><div class="k">Dishes claimed</div><div class="v" id="tDishes">–</div><div class="n" id="tDishesN">&nbsp;</div></div>
-    <div class="tile"><div class="k" id="tFourthK">Still open</div><div class="v" id="tFourth">–</div><div class="n" id="tFourthN">dishes on the menu</div></div>
   </div>
 
   <section>
@@ -187,7 +178,6 @@
         <h2 style="font-size:20px">Dietary needs</h2>
         <ul class="chips" id="allergies" style="--c:var(--accent-2)"><li class="empty" style="background:none;border:0;padding:0">None listed yet</li></ul>
       </div>
-      <div id="availWrap"></div>
     </div>
   </section>
 </main>
@@ -280,7 +270,7 @@
   function servesFromPortion(p) { var m = /serves\s*(\d+)/i.exec(p || ""); return m ? parseInt(m[1], 10) : 0; }
 
   /* ---- Turning rows into the numbers on the page ---- */
-  function model(signups, menu) {
+  function model(signups) {
     var seen = {};
     var entries = signups.map(function (r) {
       var dish = col(r, function (k) { return k.indexOf("dish") >= 0 && k.indexOf("type") < 0; }, 2);
@@ -310,15 +300,6 @@
     claimed.forEach(function (e) { if (e.name) people[e.name.toLowerCase()] = 1; });
     var headcount = Object.keys(people).length;
 
-    var taken = {};
-    claimed.forEach(function (e) { taken[e.dish.toLowerCase()] = 1; });
-    var available = {};
-    COURSES.forEach(function (c) { available[c.key] = []; });
-    menu.forEach(function (m) {
-      var course = pick(m, ["course"]), dish = pick(m, ["dish"]);
-      if (available[course] && dish && !isOtherDish(dish) && !taken[dish.toLowerCase()]) available[course].push(dish);
-    });
-
     var byCourse = {};
     COURSES.forEach(function (c) {
       var list = claimed.filter(function (e) { return e.course === c.key; });
@@ -335,7 +316,7 @@
 
     return {
       claimed: claimed, pending: pending, headcount: headcount, byCourse: byCourse,
-      available: available, needs: needs,
+      needs: needs,
       serves: claimed.reduce(function (s, e) { return s + e.serves; }, 0)
     };
   }
@@ -345,18 +326,6 @@
     $("tPeople").textContent = m.headcount;
     $("tDishes").textContent = m.claimed.length;
     $("tDishesN").textContent = m.pending.length ? m.pending.length + " more being filled in" : "across all courses";
-
-    var emptyCourses = COURSES.filter(function (c) { return !m.byCourse[c.key].list.length; });
-    if (emptyCourses.length && m.claimed.length) {
-      $("tFourthK").textContent = "Still needed";
-      $("tFourth").textContent = emptyCourses.length;
-      $("tFourthN").textContent = emptyCourses.map(function (c) { return c.label.toLowerCase(); }).join(", ");
-    } else {
-      var open = COURSES.reduce(function (s, c) { return s + m.available[c.key].length; }, 0);
-      $("tFourthK").textContent = "Still open";
-      $("tFourth").textContent = open;
-      $("tFourthN").textContent = "dishes on the menu";
-    }
 
     var courses = $("courses"); courses.textContent = "";
     COURSES.forEach(function (c) {
@@ -405,18 +374,6 @@
       var label = CFG.showAllergyNames && n.names.length ? n.text + " (" + n.names.join(", ") + ")" : n.text;
       al.appendChild(el("li", null, label));
     });
-
-    var wrap = $("availWrap"); wrap.textContent = "";
-    COURSES.forEach(function (c) {
-      var list = m.available[c.key];
-      var det = el("details", { "class": "avail", style: "--c:" + c.color });
-      det.appendChild(el("summary", null, c.label + " still up for grabs · " + list.length));
-      var ul = el("ul", { "class": "chips" });
-      list.forEach(function (d) { ul.appendChild(el("li", null, d)); });
-      if (!list.length) ul.appendChild(el("li", null, "All claimed!"));
-      det.appendChild(ul);
-      wrap.appendChild(det);
-    });
   }
 
   function setLive(ok, msg) {
@@ -426,10 +383,10 @@
 
   function load() {
     var p = DEMO ? Promise.resolve(window.FG_DEMO_DATA) :
-      Promise.all([readTab(CFG.signupTab, "A4:H400"), readTab(CFG.menuTab, "A1:B200")])
-        .then(function (r) { return { signups: r[0], menu: r[1] }; });
+      readTab(CFG.signupTab, "A4:H400")
+        .then(function (r) { return { signups: r }; });
     return p.then(function (data) {
-      lastGood = model(data.signups, data.menu);
+      lastGood = model(data.signups);
       render(lastGood);
       $("notice").className = "notice";
       var t = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });

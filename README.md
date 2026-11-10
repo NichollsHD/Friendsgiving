@@ -2,7 +2,7 @@
 
 A one-page, live view of the Friendsgiving Dish Sign-Up sheet. Powered by Nicholls Tech.
 
-Everyone keeps signing up in the Google Sheet. This page only reads it: it pulls the Sign-Up and Menu tabs each time it opens and every 60 seconds after that, and shows people signed up, dishes per course, how many servings each course covers, dietary needs (without names), and what's still up for grabs. If the sheet can't be reached it keeps the last version it got and says so.
+Everyone keeps signing up in the Google Sheet. This page only reads it: it pulls the Sign-Up tab each time it opens and every 60 seconds after that, and shows people signed up, dishes per course, how many servings each course covers and dietary needs (without names). If the sheet can't be reached it keeps the last version it got and says so.
 
 ## Setup
 
